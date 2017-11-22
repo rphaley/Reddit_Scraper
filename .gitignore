@@ -1,0 +1,4 @@
+
+ExSMTPPass.py
+*.pyc
+sendEmail.py
