@@ -10,12 +10,15 @@ def check(site):
     #Phrases to Exclude from Titles
     blstFlair =[]
     blstTitle =[]
+    winVer = ['5.2','6.0','6.1','6.2','6.3','10.0']
+    timeLow = 300
+    timeHigh = 600
     OLDResponse = ''
     CN = re.findall('r\/\w{2}',site)
     CN = CN[0][2:]
     while True:
         try:
-            response = requests.get(site, verify=True, timeout=5,headers = {'User-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0)'})
+            response = requests.get(site, verify=True, timeout=5,headers = {'User-agent': 'Mozilla/5.0 (Windows NT {}; Win64; x64;)'.format(random.choice(winVer))})
         except Exception as e:
             print("Client Error retrieving web data from {}".format(CN))
         #Check for Errors
@@ -23,7 +26,7 @@ def check(site):
             print("Reddit error requests from {}".format(CN))
         elif response.status_code != 200:
             print("Server Error retrieving web data".format(CN))
-            time.sleep(random.randint(30,250))
+            time.sleep(random.randint(timeLow,timeHigh))
             continue
         #Parse output
         parsed_json = json.loads(response.content)
@@ -51,7 +54,7 @@ def check(site):
                 OLDResponse = parsed_json['data']['children'][h]['data']['title']
                 break
         if bad == 1:
-            time.sleep(random.randint(30,250))
+            time.sleep(random.randint(timeLow,timeHigh))
             continue
 
         #Parse specific output
@@ -68,7 +71,7 @@ def check(site):
                     bad = 1
                     break
             if bad == 0:
-                sendEmail('{}\n'.format(title),url)
+                sendEmail('{}\n'.format(title),url,CN)
                 print('[REDDIT]{}\n{}\n'.format(title,url))
             continue
         #Check in flair
@@ -78,11 +81,11 @@ def check(site):
                 bad = 1
                 break  
         if bad == 0 and flair[0]!='M':
-            sendEmail('[{}] {}'.format(flair,title),url)
+            sendEmail('[{}] {}'.format(flair,title),url,CN)
             print('[REDDIT][{}] {}\n{}\n'.format(flair,title,url))
             continue
         print("Check Complete on {}".format(CN))
-        time.sleep(random.randint(30,250))
+        time.sleep(random.randint(timeLow,timeHigh))
 
 
 def Hosts(sites):
