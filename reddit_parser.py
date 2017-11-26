@@ -62,7 +62,6 @@ def check(site):
         url = parsed_json['data']['children'][i]['data']['url']
         title = title.upper()
 
-        
         #Check in title (if no flair found)
         if not flair:
             for j in blstTitle:
