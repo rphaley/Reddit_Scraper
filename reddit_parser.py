@@ -20,18 +20,17 @@ def check(site):
         try:
             response = requests.get(site, verify=True, timeout=5,headers = {'User-agent': 'Mozilla/5.0 (Windows NT {}; Win64; x64;)'.format(random.choice(winVer))})
         except Exception as e:
-            print("Client Error retrieving web data from {}".format(CN))
+            print("Client Error retrieving web data from {} Reason:{}".format(CN,e))
         #Check for Errors
         if response.content == b'{"message": "Too Many Requests", "error": 429}':
             print("Reddit error requests from {}".format(CN))
         elif response.status_code != 200:
-            print("Server Error retrieving web data".format(CN))
+            print("Server Error retrieving web data from {}".format(CN))
             time.sleep(random.randint(timeLow,timeHigh))
             continue
         #Parse output
         parsed_json = json.loads(response.content)
 
-        
         #Check if data changed since last visit
         h = 0
         while True:
@@ -79,7 +78,7 @@ def check(site):
         for k in blstFlair:
             if k in flair:
                 bad = 1
-                break  
+                break
         if bad == 0 and flair[0]!='M':
             sendEmail('[{}] {}'.format(flair,title),url,CN)
             print('[REDDIT][{}] {}\n{}\n'.format(flair,title,url))
