@@ -1,0 +1,2 @@
+# Reddit_Scraper
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7f401e4244414221bc2453c997557f64)](https://www.codacy.com/app/rphaley/Reddit_Scraper?utm_source=github.com&utm_medium=referral&utm_content=rphaley/Reddit_Scraper&utm_campaign=badger)
