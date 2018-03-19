@@ -74,7 +74,7 @@ def check(site):
                 sendEmail('{}\n'.format(title),url,CN)
                 try:
                     print('[REDDIT]{}\n{}\n'.format(title,url))
-                except:
+                except NameError:
                     print('[REDDIT]{}\n'.format(url))
             continue
         #Check in flair
@@ -87,7 +87,7 @@ def check(site):
             sendEmail('[{}] {}'.format(flair,title),url,CN)
             try:
                 print('[REDDIT][{}] {}\n{}\n'.format(flair,title,url))
-            except:
+            except NameError:
                 print('[REDDIT]{}\n'.format(url))
             continue
         print("Check Complete on {}".format(CN))
