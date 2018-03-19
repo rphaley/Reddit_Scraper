@@ -1,6 +1,6 @@
 #TODO
 
-import requests, json, time, random, threading, re
+import requests, json, time, random, threading, re, datetime
 from sendEmail import sendEmail
 
 
@@ -35,6 +35,8 @@ def check(site):
         h = 0
         while True:
             bad = 0
+            #Get timestamp
+            tStamp = datetime.datetime.now()
             #Check is thread is stickied, ignore
             if parsed_json['data']['children'][h]['data']['stickied'] == True:
                 print('Stickied Thread in {}, ignoring'.format(CN))
@@ -42,13 +44,13 @@ def check(site):
                 continue
             #Ignore thread change
             elif parsed_json['data']['children'][h]['data']['title'] == OLDResponse:
-                print('Thread {} has not changed, ignore'.format(CN))
+                print('[{:%H:%M %m/%d/%y}]Thread {} has not changed, ignore'.format(tStamp,CN))
                 bad = 1
                 h += 1
                 break
             #Thread has changed, update
             else:
-                print('Thread {} has changed, updating'.format(CN))
+                print('[{:%H:%M %m/%d/%y}]Thread {} has changed, updating'.format(tStamp,CN))
                 i = h
                 OLDResponse = parsed_json['data']['children'][h]['data']['title']
                 break
