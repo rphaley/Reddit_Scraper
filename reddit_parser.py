@@ -1,6 +1,6 @@
 #TODO
 
-import requests, json, time, random, queue, threading, re
+import requests, json, time, random, threading, re
 from sendEmail import sendEmail
 
 
@@ -70,7 +70,10 @@ def check(site):
                     break
             if bad == 0:
                 sendEmail('{}\n'.format(title),url,CN)
-                print('[REDDIT]{}\n{}\n'.format(title,url))
+                try:
+                    print('[REDDIT]{}\n{}\n'.format(title,url))
+                except:
+                    print('[REDDIT]{}\n'.format(url))
             continue
         #Check in flair
         flair = flair.upper()
@@ -80,7 +83,10 @@ def check(site):
                 break
         if bad == 0 and flair[0]!='M':
             sendEmail('[{}] {}'.format(flair,title),url,CN)
-            print('[REDDIT][{}] {}\n{}\n'.format(flair,title,url))
+            try:
+                print('[REDDIT][{}] {}\n{}\n'.format(flair,title,url))
+            except:
+                print('[REDDIT]{}\n'.format(url))
             continue
         print("Check Complete on {}".format(CN))
         time.sleep(random.randint(timeLow,timeHigh))
@@ -88,8 +94,6 @@ def check(site):
 
 def Hosts(sites):
     threads = []
-    #var for queue
-    q = queue.Queue()
     for uri in sites:
         print("Trying {}...".format(uri))
         t = threading.Thread(target=check, args=(uri,)) #Create thread for each host
@@ -98,9 +102,6 @@ def Hosts(sites):
         threads.append(t)
     for t in threads:
         t.join()
-    #Emtpy queue into list
-    while not q.empty():
-        check.append(q.get())
 
 if __name__ == "__main__":
     sites = []
