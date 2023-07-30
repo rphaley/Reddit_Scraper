@@ -1,0 +1,7 @@
+# Function dependencies, for example:
+# package>=version
+
+requests==2.25.1
+google-cloud-logging
+google-cloud-storage
+openai

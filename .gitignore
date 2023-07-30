@@ -1,4 +1,5 @@
-
-ExSMTPPass.py
+*.json
 *.pyc
-sendEmail.py
+config.ini
+/.vscode
+/oldApp
