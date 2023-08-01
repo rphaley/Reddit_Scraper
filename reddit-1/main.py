@@ -30,6 +30,7 @@ def check(site, config, debug):
     #Get setting from config file
     blstFlair = [item.strip() for item in config.get('settings', 'FlairExclusions').split(',')]
     blstTitle = [item.strip() for item in config.get('settings', 'TitleExclusions').split(',')]
+    blstPost = [item.strip() for item in config.get('settings', 'PostExclusions').split(',')]
     winVer = [item.strip() for item in config.get('settings', 'winVer').split(',')]
 
 
@@ -66,15 +67,30 @@ def check(site, config, debug):
         if parsed_json['data']['children'][post]['data']['stickied'] == True:
             if debug == 1: print(f'Stickied Thread in {subredditName}, ignoring')
             continue
-        #Parse specific output
-        flair = parsed_json['data']['children'][post]['data']['link_flair_text']
-        title = parsed_json['data']['children'][post]['data']['title']
-        postBody = parsed_json['data']['children'][post]['data']['selftext']
-        author = parsed_json['data']['children'][post]['data']['author']
-        id = parsed_json['data']['children'][post]['data']['id']
-        createdTime = parsed_json['data']['children'][post]['data']['created_utc']
-        url = parsed_json['data']['children'][post]['data']['url']
-        if debug == 1: print(f'Flair:{flair}, Title:{title}, URL:{url}') 
+        try:
+            #Parse specific output
+            flair = parsed_json['data']['children'][post]['data']['link_flair_text']
+            title = parsed_json['data']['children'][post]['data']['title']
+            postBody = parsed_json['data']['children'][post]['data']['selftext']
+            author = parsed_json['data']['children'][post]['data']['author']
+            id = parsed_json['data']['children'][post]['data']['id']
+            createdTime = parsed_json['data']['children'][post]['data']['created_utc']
+            url = parsed_json['data']['children'][post]['data']['url']
+            if debug == 1: print(f'Flair:{flair}, Title:{title}, URL:{url}') 
+        except Exception as e:
+            print(f'[-] Error parsing JSON: {e}')
+            continue
+
+        #Check in post body
+        if postBody:
+            postBody = postBody.upper()
+            for j in blstPost:
+                if debug == 1: print(f'[Post Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody}')
+                if j in postBody:
+                    if debug == 1: print(f'[BAD][{subredditName[0]}] Incorrect title:{j} on:{postBody}')
+                    bad = 1
+                    continue
+            if bad == 1: continue
 
         #Check in title
         if title:
