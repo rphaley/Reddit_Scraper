@@ -83,11 +83,11 @@ def check(site, config, debug):
 
         #Check in post body
         if postBody:
-            postBody = postBody.upper()
+            postBody_tmp = postBody.upper()
             for j in blstPost:
-                if debug == 1: print(f'[Post Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody}')
-                if j in postBody:
-                    if debug == 1: print(f'[BAD][{subredditName[0]}] Incorrect title:{j} on:{postBody}')
+                if debug == 1: print(f'[Post Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp}')
+                if j in postBody_tmp:
+                    if debug == 1: print(f'[BAD][{subredditName[0]}] Incorrect title:{j} on:{postBody_tmp}')
                     bad = 1
                     continue
             if bad == 1: continue
