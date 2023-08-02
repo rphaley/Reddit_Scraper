@@ -86,6 +86,7 @@ def check(site, config, debug):
         if postBody:
             postBody_tmp = postBody.upper()
             for j in blstPost:
+                j = j.upper()
                 if debug == 1: print(f'[PostEx Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp}')
                 if j in postBody_tmp:
                     if debug == 1: print(f'[BAD][{subredditName[0]}] Body keyword exclusion "{j}" on:{postBody_tmp}')
@@ -108,6 +109,7 @@ def check(site, config, debug):
                 continue
 
             for j in blstTitle:
+                j = j.upper()
                 if debug == 1: print(f'[TitleEx Check][{subredditName[0]}] CurrentCheck:{j}, Title:{title}')
                 if j in title:
                     if debug == 1: print(f'[BAD][{subredditName[0]}] Title keyword exclusion "{j}" on:{title}')
@@ -119,6 +121,7 @@ def check(site, config, debug):
         if flair:
             flair = flair.upper()
             for k in blstFlair:
+                k = k.upper()
                 if debug == 1: print(f'[FlairEx Check][{subredditName[0]}] CurrentCheck:{k}, Title:{flair}')
                 if k in flair:
                     if debug == 1: print(f'[BAD][{subredditName[0]}] Flair keyword exclusion "{k}" on:{flair}')
@@ -131,6 +134,7 @@ def check(site, config, debug):
             postBody_tmp = postBody.upper()
             good = 0
             for j in blstInclusions:
+                j = j.upper()
                 if debug == 1: print(f'[PostIn Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp}')
                 if j in postBody_tmp:
                     if debug == 1: print(f'[BAD][{subredditName[0]}] Body keyword "{j}" not found on:{postBody_tmp}')
@@ -142,6 +146,7 @@ def check(site, config, debug):
         if title:
             title = title.upper()
             for j in blstInclusions:
+                j = j.upper()
                 if debug == 1: print(f'[TitleIn Check][{subredditName[0]}] CurrentCheck:{j}, Title:{title}')
                 if j in title:
                     if debug == 1: print(f'[BAD][{subredditName[0]}] Title keyword "{j}" not found on:{title}')
