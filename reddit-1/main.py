@@ -31,6 +31,7 @@ def check(site, config, debug):
     blstFlair = [item.strip() for item in config.get('settings', 'FlairExclusions').split(',')]
     blstTitle = [item.strip() for item in config.get('settings', 'TitleExclusions').split(',')]
     blstPost = [item.strip() for item in config.get('settings', 'PostExclusions').split(',')]
+    blstInclusions = [item.strip() for item in config.get('settings', 'Inclusions').split(',')]
     winVer = [item.strip() for item in config.get('settings', 'winVer').split(',')]
 
 
@@ -81,18 +82,18 @@ def check(site, config, debug):
             print(f'[-] Error parsing JSON: {e}')
             continue
 
-        #Check in post body
+        #Check exclusion in post body
         if postBody:
             postBody_tmp = postBody.upper()
             for j in blstPost:
-                if debug == 1: print(f'[Post Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp}')
+                if debug == 1: print(f'[PostEx Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp}')
                 if j in postBody_tmp:
-                    if debug == 1: print(f'[BAD][{subredditName[0]}] Incorrect title:{j} on:{postBody_tmp}')
+                    if debug == 1: print(f'[BAD][{subredditName[0]}] Body keyword exclusion "{j}" on:{postBody_tmp}')
                     bad = 1
                     continue
             if bad == 1: continue
 
-        #Check in title
+        #Check exclusion in title
         if title:
             title = title.upper()
             age = title[0:2]
@@ -107,20 +108,43 @@ def check(site, config, debug):
                 continue
 
             for j in blstTitle:
-                if debug == 1: print(f'[Title Check][{subredditName[0]}] CurrentCheck:{j}, Title:{title}')
+                if debug == 1: print(f'[TitleEx Check][{subredditName[0]}] CurrentCheck:{j}, Title:{title}')
                 if j in title:
-                    if debug == 1: print(f'[BAD][{subredditName[0]}] Incorrect title:{j} on:{title}')
+                    if debug == 1: print(f'[BAD][{subredditName[0]}] Title keyword exclusion "{j}" on:{title}')
                     bad = 1
                     continue
             if bad == 1: continue
 
-        #Check in flair
+        #Check exclusion in flair
         if flair:
             flair = flair.upper()
             for k in blstFlair:
-                if debug == 1: print(f'[Flair Check][{subredditName[0]}] CurrentCheck:{k}, Title:{flair}')
+                if debug == 1: print(f'[FlairEx Check][{subredditName[0]}] CurrentCheck:{k}, Title:{flair}')
                 if k in flair:
-                    if debug == 1: print(f'[BAD][{subredditName[0]}] Incorrect flair:{k} on:{flair}')
+                    if debug == 1: print(f'[BAD][{subredditName[0]}] Flair keyword exclusion "{k}" on:{flair}')
+                    bad = 1
+                    continue
+            if bad == 1: continue
+
+        #Check inclusion in post body
+        if postBody:
+            postBody_tmp = postBody.upper()
+            good = 0
+            for j in blstInclusions:
+                if debug == 1: print(f'[PostIn Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp}')
+                if j in postBody_tmp:
+                    if debug == 1: print(f'[BAD][{subredditName[0]}] Body keyword "{j}" not found on:{postBody_tmp}')
+                    good = 1
+                    continue
+            if good == 0: continue
+
+        #Check inclusion in title
+        if title:
+            title = title.upper()
+            for j in blstInclusions:
+                if debug == 1: print(f'[TitleIn Check][{subredditName[0]}] CurrentCheck:{j}, Title:{title}')
+                if j in title:
+                    if debug == 1: print(f'[BAD][{subredditName[0]}] Title keyword "{j}" not found on:{title}')
                     bad = 1
                     continue
             if bad == 1: continue

@@ -83,6 +83,7 @@ def cleanJSON(config, debug):
         #Get current epoch time
         current_utc_time = int(time.time())
         #Clean up the data
+        change = 0
         for i in list(data):
             #Get the epoch time of the post
             post_time = data[i]
@@ -91,6 +92,14 @@ def cleanJSON(config, debug):
             #If the difference is greater than 24 hours, remove the post
             if time_diff > 86400:
                 data.pop(i)
+                change = 1
+                
+        if change:
+            # Write the modified data back to the JSON file
+            json_data_modified = json.dumps(data)
+            blob.upload_from_string(json_data_modified)
+            if debug == 1: print(f'[+] Updated database uploaded to GCP bucket.')
+            return 'JSON file read, modified, and written successfully!', 200
 
     except Exception as e:
         print(f'[-] Error cleaning json bucket: {e}')
