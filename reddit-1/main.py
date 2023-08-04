@@ -3,7 +3,7 @@ debug = 0
 
 #TODO
 #Import modules
-import configparser, datetime, importlib, json, logging, openai, os, random, re, requests, threading, time
+import configparser, datetime, importlib, json, logging, openai, os, random, re, requests, sys, threading, time, traceback
 #Import custom modules
 from sendEmail import sendEmail
 from processDB import cleanJSON, readJSON, writeJSON
@@ -141,6 +141,12 @@ def check(site, config, debug):
                     if debug == 1: print(f'[GOOD][{subredditName[0]}] keyword "{j}" found on:{postBody_tmp} or {title}')
                     good = 1
                     continue
+                if j in postBody_tmp:
+                    keywork_match = j
+                    if debug == 1: print(f'[GOOD][{subredditName[0]}] Post keyword "{j}" found on:{postBody_tmp}')
+                elif j in title:
+                    keywork_match = j
+                    if debug == 1: print(f'[GOOD][{subredditName[0]}] Title keyword "{j}" found on:{title}')
             if good == 0: continue
 
 
@@ -170,8 +176,8 @@ def check(site, config, debug):
                 print(f'[-] Error sending email: {e}')
                 continue
 
-            #append id and createdTime as a key:value pair
-            data[id] = createdTime
+            #update database with new post id and created time and keyword match
+            data[id] = {"createdTime":createdTime,"keywordMatch":keywork_match}
             writeJSON(config, data, debug)
 
 

@@ -28,7 +28,14 @@ def readJSON(config, debug):
         return data
 
     except Exception as e:
-        print(f'[-] Error reading from json bucket: {e}')
+        # Get the current exception information
+        exc_type, exc_obj, tb = sys.exc_info()
+        # Get the line number where the exception occurred
+        line_number = traceback.extract_tb(tb)[-1][1]
+        # Get the full traceback as a string
+        traceback_str = traceback.format_exc()
+        # Raise a new exception with the original exception message and line number
+        print(f'[-] Error reading from json bucket: Error:{e}, Line:{line_number}, Traceback:{traceback_str}')
         return 'Something went wrong', 500
     
 
@@ -52,7 +59,14 @@ def writeJSON(config, data, debug):
         return 'JSON file read, modified, and written successfully!', 200
 
     except Exception as e:
-        print(f'[-] Error writing to json bucket: {e}')
+        # Get the current exception information
+        exc_type, exc_obj, tb = sys.exc_info()
+        # Get the line number where the exception occurred
+        line_number = traceback.extract_tb(tb)[-1][1]
+        # Get the full traceback as a string
+        traceback_str = traceback.format_exc()
+        # Raise a new exception with the original exception message and line number
+        print(f'[-] Error writing to json bucket: Error:{e}, Line:{line_number}, Traceback:{traceback_str}')
         return 'Something went wrong', 500
 
 def cleanJSON(config, debug):
@@ -86,14 +100,14 @@ def cleanJSON(config, debug):
         change = 0
         for i in list(data):
             #Get the epoch time of the post
-            post_time = data[i]
+            post_time = data[i]['createdTime']
             #Get the difference between the post time and current time
             time_diff = current_utc_time - post_time
             #If the difference is greater than 24 hours, remove the post
             if time_diff > 86400:
                 data.pop(i)
                 change = 1
-                
+
         if change:
             # Write the modified data back to the JSON file
             json_data_modified = json.dumps(data)
@@ -102,5 +116,12 @@ def cleanJSON(config, debug):
             return 'JSON file read, modified, and written successfully!', 200
 
     except Exception as e:
-        print(f'[-] Error cleaning json bucket: {e}')
+        # Get the current exception information
+        exc_type, exc_obj, tb = sys.exc_info()
+        # Get the line number where the exception occurred
+        line_number = traceback.extract_tb(tb)[-1][1]
+        # Get the full traceback as a string
+        traceback_str = traceback.format_exc()
+        # Raise a new exception with the original exception message and line number
+        print(f'[-] Error cleaning json bucket: Error:{e}, Line:{line_number}, Traceback:{traceback_str}')
         return 'Something went wrong', 500
