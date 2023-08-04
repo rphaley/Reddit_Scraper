@@ -26,7 +26,7 @@ except Exception as e:
 
 #if debug == 1: print(f'[+] ENV Vars: {os.environ}')
 
-def check(site, config, debug):
+def check(site, config, data, debug):
     #Get setting from config file
     blstFlair = [item.strip() for item in config.get('settings', 'FlairExclusions').split(',')]
     blstTitle = [item.strip() for item in config.get('settings', 'TitleExclusions').split(',')]
@@ -41,7 +41,7 @@ def check(site, config, debug):
 
     #GET JSON FROM SUBREDDIT
     try:
-        response = requests.get(site, verify=True, timeout=5,headers = {'User-agent': 'Mozilla/5.0 (Windows NT {}; Win64; x64;)'.format(random.choice(winVer))})
+        response = requests.get(site, verify=True, timeout=5,headers = {f'User-agent': 'Mozilla/5.0 (Windows NT {random.choice(winVer)}; Win64; x64;)'})
     except Exception as e:
         print(f"[-] Client Error retrieving web data from {subredditName} Reason:{e}")
         logging.warning(f"[-] HTTP Client Error retrieving web data from {subredditName} Reason:{e}")
@@ -61,7 +61,7 @@ def check(site, config, debug):
         return
     
     #Iterate through posts
-    for post in range(0,15):
+    for post in range(0,100):
         #Check for stickied threads
         bad = 0
         #Check is thread is stickied, ignore
@@ -87,6 +87,12 @@ def check(site, config, debug):
             traceback_str = traceback.format_exc()
             # Raise a new exception with the original exception message and line number
             print(f'[-] Error parsing JSON: Error:{e}, Line:{line_number}, Traceback:{traceback_str}')
+            continue
+
+        #Check id against database
+        if id in data:
+            if debug == 1: print(f'[BAD][{subredditName[0]}] ID:{id} already in database')
+            bad = 1
             continue
 
         #Check exclusion in post body
@@ -157,35 +163,24 @@ def check(site, config, debug):
             if good == 0: continue
 
 
-        #Check id against database
+        #We got to the end, process post
         try:
-            if debug == 1: print(f'[{subredditName[0]}] Checking {id} against database')
-            data = readJSON(config, debug)
+            #Generate Response
+            postResponse = generateResponse(config, author, postBody, debug)
         except Exception as e:
-            print(f'[-] Error checking {id} against database: {e}')
-
-        if id in data:
-            if debug == 1: print(f'[BAD][{subredditName[0]}] ID:{id} already in database')
-            bad = 1
+            print(f'[-] Error generating response from OpenAI API: {e}')
             continue
-        else:
-            try:
-                #Generate Response
-                postResponse = generateResponse(config, author, postBody, debug)
-            except Exception as e:
-                print(f'[-] Error generating response from OpenAI API: {e}')
-                continue
-            try:
-                #Send email
-                print('='*50 + 'EMAIL' + '='*50)
-                sendEmail(config, debug, f'{title}',url,subredditName[0], postBody, author, postResponse)
-            except Exception as e:
-                print(f'[-] Error sending email: {e}')
-                continue
+        try:
+            #Send email
+            print('='*50 + 'EMAIL' + '='*50)
+            sendEmail(config, debug, f'{title}',url,subredditName[0], postBody, author, postResponse)
+        except Exception as e:
+            print(f'[-] Error sending email: {e}')
+            continue
 
-            #update database with new post id and created time and keyword match
-            data[id] = {"createdTime":createdTime,"keywordMatch":keywork_match}
-            writeJSON(config, data, debug)
+        #update database with new post id and created time and keyword match
+        data[id] = {"createdTime":createdTime,"keywordMatch":keywork_match}
+        writeJSON(config, data, debug)
 
 
     print('='*50 + f'CHECK {post} COMPLETE ON {subredditName[0]}' + '='*50)
@@ -196,11 +191,18 @@ def check(site, config, debug):
 
 def Hosts(config, debug):
     threads = []
+    #Read JSON database from GCP bucket
+    try:
+        if debug == 1: print(f'[{subredditName[0]}] Checking {id} against database')
+        data = readJSON(config, debug)
+    except Exception as e:
+        print(f'[-] Error checking {id} against database: {e}')
+
     #Get list of uris from config file
     sites = [item.strip() for item in config.get('settings', 'sites').split(',')]
     for uri in sites:
         if debug == 1: print("Trying {}...".format(uri))
-        t = threading.Thread(target=check, args=(uri, config, debug,)) #Create thread for each host
+        t = threading.Thread(target=check, args=(uri, config, data, debug,)) #Create thread for each host
         t.daemon = True             #kill process if main thread ends
         t.start()
         threads.append(t)
