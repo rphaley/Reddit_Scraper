@@ -138,7 +138,7 @@ def check(site, config, debug):
                 j = j.upper()
                 if debug == 1: print(f'[PostIn and TitleIn Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp} Title:{title}')
                 if j in postBody_tmp or j in title:
-                    if debug == 1: print(f'[BAD][{subredditName[0]}] keyword "{j}" not found on:{postBody_tmp} or {title}')
+                    if debug == 1: print(f'[GOOD][{subredditName[0]}] keyword "{j}" found on:{postBody_tmp} or {title}')
                     good = 1
                     continue
             if good == 0: continue
