@@ -129,30 +129,20 @@ def check(site, config, debug):
                     continue
             if bad == 1: continue
 
-        #Check inclusion in post body
-        if postBody:
+        #Check inclusion in post body or title
+        if postBody and title:
             postBody_tmp = postBody.upper()
+            title = title.upper()
             good = 0
             for j in blstInclusions:
                 j = j.upper()
-                if debug == 1: print(f'[PostIn Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp}')
-                if j in postBody_tmp:
-                    if debug == 1: print(f'[BAD][{subredditName[0]}] Body keyword "{j}" not found on:{postBody_tmp}')
+                if debug == 1: print(f'[PostIn and TitleIn Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp} Title:{title}')
+                if j in postBody_tmp or j in title:
+                    if debug == 1: print(f'[BAD][{subredditName[0]}] keyword "{j}" not found on:{postBody_tmp} or {title}')
                     good = 1
                     continue
             if good == 0: continue
 
-        #Check inclusion in title
-        if title:
-            title = title.upper()
-            for j in blstInclusions:
-                j = j.upper()
-                if debug == 1: print(f'[TitleIn Check][{subredditName[0]}] CurrentCheck:{j}, Title:{title}')
-                if j in title:
-                    if debug == 1: print(f'[BAD][{subredditName[0]}] Title keyword "{j}" not found on:{title}')
-                    bad = 1
-                    continue
-            if bad == 1: continue
 
         #Check id against database
         try:
