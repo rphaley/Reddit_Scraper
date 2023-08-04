@@ -1,4 +1,4 @@
-import json, os, time
+import json, os, sys, time, traceback
 try:
     if os.environ["GCP_Hosted"]:
         print(f'[+] GCP found, installing dependencies')

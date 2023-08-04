@@ -79,7 +79,14 @@ def check(site, config, debug):
             url = parsed_json['data']['children'][post]['data']['url']
             if debug == 1: print(f'Flair:{flair}, Title:{title}, URL:{url}') 
         except Exception as e:
-            print(f'[-] Error parsing JSON: {e}')
+            # Get the current exception information
+            exc_type, exc_obj, tb = sys.exc_info()
+            # Get the line number where the exception occurred
+            line_number = traceback.extract_tb(tb)[-1][1]
+            # Get the full traceback as a string
+            traceback_str = traceback.format_exc()
+            # Raise a new exception with the original exception message and line number
+            print(f'[-] Error parsing JSON: Error:{e}, Line:{line_number}, Traceback:{traceback_str}')
             continue
 
         #Check exclusion in post body
@@ -136,17 +143,17 @@ def check(site, config, debug):
             good = 0
             for j in blstInclusions:
                 j = j.upper()
-                if debug == 1: print(f'[PostIn and TitleIn Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp} Title:{title}')
+                if debug == 1: print(f'[InclusionCheck][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp} Title:{title}')
                 if j in postBody_tmp or j in title:
-                    if debug == 1: print(f'[GOOD][{subredditName[0]}] keyword "{j}" found on:{postBody_tmp} or {title}')
+                    if debug == 1: print(f'[InclusionCheck][GOOD][{subredditName[0]}] keyword "{j}" found on:{postBody_tmp.rstrip()} or {title}')
                     good = 1
-                    continue
-                if j in postBody_tmp:
-                    keywork_match = j
-                    if debug == 1: print(f'[GOOD][{subredditName[0]}] Post keyword "{j}" found on:{postBody_tmp}')
-                elif j in title:
-                    keywork_match = j
-                    if debug == 1: print(f'[GOOD][{subredditName[0]}] Title keyword "{j}" found on:{title}')
+                    if j in postBody_tmp:
+                        keywork_match = j
+                        if debug == 1: print(f'[InclusionCheck][GOOD][{subredditName[0]}] Post keyword "{j}" found on:{postBody_tmp}')
+                    elif j in title:
+                        keywork_match = j
+                        if debug == 1: print(f'[InclusionCheck][GOOD][{subredditName[0]}] Title keyword "{j}" found on:{title}')
+                    break
             if good == 0: continue
 
 
