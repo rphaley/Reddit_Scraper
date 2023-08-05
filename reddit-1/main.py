@@ -223,18 +223,21 @@ def Hosts(config, debug):
 
 
 def db_writer(db_queue, config):
-    while True:
+    while not db_queue.empty():
         try:
+            if debug == 1: print(f'Starting db_writer function')
             item = db_queue.get()
+            if debug == 1: print(f'Got item from queue')
             if item is None:  # Sentinel value to stop the thread
                 break
             
             writeJSON(config, item, debug)
-            
+            if debug == 1: print(f'Wrote item to json bucket')
             db_queue.task_done()
         except queue.Empty:
             # Handle an empty queue exception
-            pass
+            if debug == 1: print(f'Empty queue')
+            return
         except Exception as e:
             print(f'[-] Error writing to json bucket: Error:{e}')
             return 'Something went wrong', 500
