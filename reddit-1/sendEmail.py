@@ -3,7 +3,7 @@
 import base64, logging, os, smtplib
 from email.mime.text import MIMEText
 
-def sendEmail(config, debug, title,url,CN, postBody, author, postResponse):
+def sendEmail(config, debug, title,url,CN, postBody, author, postResponse, keywork_match_lst):
     try:
         fromaddr = config.get('EmailSettings', 'FromAddress')
         toaddrs = config.get('EmailSettings', 'ToAddress')
@@ -17,9 +17,9 @@ def sendEmail(config, debug, title,url,CN, postBody, author, postResponse):
         return
     
     #Compose Message
-    title = "[{}] {}".format(CN,title)
+    title = f"[{CN}][{len(keywork_match_lst)}] {title}"
     try:
-        message = MIMEText(f'POST: {postBody}<br><br>AUTHOR: <a href="https://reddit.com/u/{author}">{author}</a><br><br>LINK: {url}<br><br>RESPONSE: {postResponse}', 'html')
+        message = MIMEText(f'POST: {postBody}<br><br>AUTHOR: <a href="https://reddit.com/u/{author}">{author}</a><br><br><br>Keyword: {keywork_match_lst}<br>LINK: {url}<br><br>RESPONSE: {postResponse}', 'html')
     except Exception as e:
         print(f'[-] Error formatting email message: {e}')
         return

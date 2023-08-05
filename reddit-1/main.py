@@ -3,7 +3,7 @@ debug = 0
 
 #TODO
 #Import modules
-import configparser, datetime, importlib, json, logging, openai, os, random, re, requests, sys, threading, time, traceback
+import configparser, datetime, importlib, json, logging, openai, os, queue, random, re, requests, sys, threading, time, traceback
 #Import custom modules
 from sendEmail import sendEmail
 from processDB import cleanJSON, readJSON, writeJSON
@@ -26,7 +26,7 @@ except Exception as e:
 
 #if debug == 1: print(f'[+] ENV Vars: {os.environ}')
 
-def check(site, config, data, debug):
+def check(site, config, data, db_queue, debug):
     #Get setting from config file
     blstFlair = [item.strip() for item in config.get('settings', 'FlairExclusions').split(',')]
     blstTitle = [item.strip() for item in config.get('settings', 'TitleExclusions').split(',')]
@@ -146,7 +146,10 @@ def check(site, config, data, debug):
         if postBody and title:
             postBody_tmp = postBody.upper()
             title = title.upper()
+            #set default good value to false
             good = 0
+            #Create list of keywords found for quality check
+            keywork_match_lst = []
             for j in blstInclusions:
                 j = j.upper()
                 if debug == 1: print(f'[InclusionCheck][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp} Title:{title}')
@@ -155,11 +158,12 @@ def check(site, config, data, debug):
                     good = 1
                     if j in postBody_tmp:
                         keywork_match = j
+                        keywork_match_lst.append(j)
                         if debug == 1: print(f'[InclusionCheck][GOOD][{subredditName[0]}] Post keyword "{j}" found on:{postBody_tmp}')
                     elif j in title:
                         keywork_match = j
+                        keywork_match_lst.append(j)
                         if debug == 1: print(f'[InclusionCheck][GOOD][{subredditName[0]}] Title keyword "{j}" found on:{title}')
-                    break
             if good == 0: continue
 
 
@@ -173,14 +177,14 @@ def check(site, config, data, debug):
         try:
             #Send email
             print('='*50 + 'EMAIL' + '='*50)
-            sendEmail(config, debug, f'{title}',url,subredditName[0], postBody, author, postResponse)
+            sendEmail(config, debug, f'{title}',url,subredditName[0], postBody, author, postResponse, keywork_match_lst)
         except Exception as e:
             print(f'[-] Error sending email: {e}')
             continue
 
         #update database with new post id and created time and keyword match
-        data[id] = {"createdTime":createdTime,"keywordMatch":keywork_match}
-        writeJSON(config, data, debug)
+        data[id] = {"createdTime":createdTime,"keywordMatch":keywork_match_lst}
+        db_queue.put(data)
 
 
     print('='*50 + f'CHECK {post} COMPLETE ON {subredditName[0]}' + '='*50)
@@ -193,21 +197,47 @@ def Hosts(config, debug):
     threads = []
     #Read JSON database from GCP bucket
     try:
-        if debug == 1: print(f'[{subredditName[0]}] Checking {id} against database')
+        if debug == 1: print(f'Reading database from GCP bucket')
         data = readJSON(config, debug)
     except Exception as e:
         print(f'[-] Error checking {id} against database: {e}')
+        return
 
     #Get list of uris from config file
     sites = [item.strip() for item in config.get('settings', 'sites').split(',')]
+    db_queue = queue.Queue()
     for uri in sites:
         if debug == 1: print("Trying {}...".format(uri))
-        t = threading.Thread(target=check, args=(uri, config, data, debug,)) #Create thread for each host
-        t.daemon = True             #kill process if main thread ends
+        t = threading.Thread(target=check, args=(uri, config, data, db_queue, debug,)) #Create thread for each host
+        #kill process if main thread ends
+        t.daemon = True            
+        # Start the thread, which will execute the 'check' function in parallel with the main thread
         t.start()
+        # Add the thread to the 'threads' list so we can keep track of it
         threads.append(t)
+    # After creating all threads, wait for each thread to complete before proceeding
     for t in threads:
         t.join()
+    
+    db_writer(db_queue, config)
+
+
+def db_writer(db_queue, config):
+    while True:
+        try:
+            item = db_queue.get()
+            if item is None:  # Sentinel value to stop the thread
+                break
+            
+            writeJSON(config, item, debug)
+            
+            db_queue.task_done()
+        except queue.Empty:
+            # Handle an empty queue exception
+            pass
+        except Exception as e:
+            print(f'[-] Error writing to json bucket: Error:{e}')
+            return 'Something went wrong', 500
 
 #if __name__ == "__main__":
 def main(request):
