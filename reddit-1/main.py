@@ -1,5 +1,5 @@
 #Troubleshooting
-debug = 0
+debug = 1
 
 #TODO
 #Import modules
@@ -32,6 +32,8 @@ def check(site, config, data, db_queue, debug):
     blstTitle = [item.strip() for item in config.get('settings', 'TitleExclusions').split(',')]
     blstPost = [item.strip() for item in config.get('settings', 'PostExclusions').split(',')]
     blstInclusions = [item.strip() for item in config.get('settings', 'Inclusions').split(',')]
+    blstFeatInclusions = [item.strip() for item in config.get('settings', 'FeatureInclusions').split(',')]
+    blstLocInclusions = [item.strip() for item in config.get('settings', 'LocationInclusions').split(',')]
     winVer = [item.strip() for item in config.get('settings', 'winVer').split(',')]
 
 
@@ -61,7 +63,7 @@ def check(site, config, data, db_queue, debug):
         return
     
     #Iterate through posts
-    for post in range(0,100):
+    for post in range(0,50):
         #Check for stickied threads
         bad = 0
         #Check is thread is stickied, ignore
@@ -95,6 +97,7 @@ def check(site, config, data, db_queue, debug):
             bad = 1
             continue
 
+        postBad = 0
         #Check exclusion in post body
         if postBody:
             postBody_tmp = postBody.upper()
@@ -103,9 +106,9 @@ def check(site, config, data, db_queue, debug):
                 if debug == 1: print(f'[PostEx Check][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp}')
                 if j in postBody_tmp:
                     if debug == 1: print(f'[BAD][{subredditName[0]}] Body keyword exclusion "{j}" on:{postBody_tmp}')
-                    bad = 1
+                    postBad = postBad + 1
                     continue
-            if bad == 1: continue
+            if postBad > 1: continue
 
         #Check exclusion in title
         if title:
@@ -146,25 +149,57 @@ def check(site, config, data, db_queue, debug):
         if postBody and title:
             postBody_tmp = postBody.upper()
             title = title.upper()
-            #set default good value to false
-            good = 0
             #Create list of keywords found for quality check
             keywork_match_lst = []
+
+            #set default good value to false
+            locGood = 0
+            for loc in blstLocInclusions:
+                loc = loc.upper()
+                if debug == 1: print(f'[LocationInclusionCheck][{subredditName[0]}] CurrentCheck:{loc}, Post:{postBody_tmp} Title:{title}')
+                if loc in postBody_tmp or loc in title:
+                    if debug == 1: print(f'[LocationInclusionCheck][GOOD][{subredditName[0]}] keyword "{loc}" found on:{postBody_tmp.rstrip()} or {title}')
+                    if loc in postBody_tmp:
+                        keywork_match_lst.append(loc)
+                        if debug == 1: print(f'[LocationInclusionCheck][GOOD][{subredditName[0]}] Post keyword "{loc}" found on:{postBody_tmp}')
+                        locGood = locGood + 1
+                    elif loc in title:
+                        keywork_match_lst.append(loc)
+                        if debug == 1: print(f'[LocationInclusionCheck][GOOD][{subredditName[0]}] Title keyword "{loc}" found on:{title}')
+                        locGood = locGood + 1
+            if locGood == 0: continue
+
+
+            #set default good value to false
+            featGood = 0
+            for feat in blstFeatInclusions:
+                feat = feat.upper()
+                if debug == 1: print(f'[FeatureInclusionCheck][{subredditName[0]}] CurrentCheck:{feat}, Post:{postBody_tmp} Title:{title}')
+                if feat in postBody_tmp or feat in title:
+                    if debug == 1: print(f'[FeatureInclusionCheck][GOOD][{subredditName[0]}] keyword "{feat}" found on:{postBody_tmp.rstrip()} or {title}')
+                    if feat in postBody_tmp:
+                        keywork_match_lst.append(feat)
+                        if debug == 1: print(f'[FeatureInclusionCheck][GOOD][{subredditName[0]}] Post keyword "{feat}" found on:{postBody_tmp}')
+                        featGood = featGood + 1
+                    elif feat in title:
+                        keywork_match_lst.append(feat)
+                        if debug == 1: print(f'[FeatureInclusionCheck][GOOD][{subredditName[0]}] Title keyword "{feat}" found on:{title}')
+                        featGood = featGood + 1
+            if featGood == 0: continue
+
+
             for j in blstInclusions:
                 j = j.upper()
                 if debug == 1: print(f'[InclusionCheck][{subredditName[0]}] CurrentCheck:{j}, Post:{postBody_tmp} Title:{title}')
                 if j in postBody_tmp or j in title:
                     if debug == 1: print(f'[InclusionCheck][GOOD][{subredditName[0]}] keyword "{j}" found on:{postBody_tmp.rstrip()} or {title}')
-                    good = 1
                     if j in postBody_tmp:
-                        keywork_match = j
                         keywork_match_lst.append(j)
                         if debug == 1: print(f'[InclusionCheck][GOOD][{subredditName[0]}] Post keyword "{j}" found on:{postBody_tmp}')
                     elif j in title:
-                        keywork_match = j
                         keywork_match_lst.append(j)
                         if debug == 1: print(f'[InclusionCheck][GOOD][{subredditName[0]}] Title keyword "{j}" found on:{title}')
-            if good == 0: continue
+
 
 
         #We got to the end, process post
@@ -256,4 +291,4 @@ def main(request):
 
 
 #For local host testing
-#main('test')
+main('test')
