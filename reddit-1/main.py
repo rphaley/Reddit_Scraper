@@ -1,5 +1,5 @@
 #Troubleshooting
-debug = 1
+debug = 0
 
 #TODO
 #Import modules
@@ -291,4 +291,4 @@ def main(request):
 
 
 #For local host testing
-main('test')
+#main('test')
