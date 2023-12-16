@@ -4,4 +4,5 @@
 requests==2.25.1
 google-cloud-logging
 google-cloud-storage
-openai
+openai==0.28.1
+praw
